@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Utilizando Spark no R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Suzana de Lima" />
+    <script src="libs/header-attrs-2.10/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/app.css" rel="stylesheet" />
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/tachyons-4.12.0/tachyons.min.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Utilizando Spark no R
+### Suzana de Lima
+### Outubro, 2021
+
+---
+
+
+
+
+class: middle
+
+.pull-left[
+.center[
+## Estrutura
+] 
+
+- Software R 
+
+- Pacotes necessários
+
+- Base de dados
+
+- Conceitos básicos
+
+- Ambiente spark no RStudio
+
+- Aplicação
+
+- Atividade
+ 
+]
+
+.pull-right[
+
+![Coding](https://media.giphy.com/media/kPrlykW2TpVU4HWx2O/giphy.gif?cid=ecf05e4788y4js9pnqgxzz7cabyuc5jk5rykc2rxgm0j8q53&amp;rid=giphy.gif&amp;ct=g)
+
+]
+
+---
+class: middle, center, inverse
+
+#Software R
+
+
+---
+class: middle
+
+.center[
+# Software R 
+]
+
+.pull-left[
+
+- Linguagem de programação de alto nível;
+
+- Desenvolvido na década de 90 no departamento de Estatística da Universidade de Auckland, Nova Zelândia;
+
+- Ross Ihaka e Robert Gentleman;
+
+- As contribuições são feitas através de pacotes.
+]
+
+.pull-right[
+
+![logo](https://beatrizmilz.github.io/slidesR/git_rstudio/img/R_logo.svg.png)
+]
+
+---
+class: middle
+
+.center[
+# Software R 
+]
+
+.pull-left[
+
+- Rstudio é uma interface gráfica de usuário;
+ 
+- É mais bonitinho 😄.
+]
+
+.pull-right[
+
+![logor](https://beatrizmilz.github.io/slidesR/git_rstudio/img/rstudio.png)
+]
+
+---
+class: middle
+.center[
+# Software R 
+]
+
+- Instalar o [RStudio](https://www.rstudio.com/products/rstudio/download/)
+
+  -  Necessita do [R](https://cran.fiocruz.br/) instalado
+
+
+```r
+sessioninfo::session_info()$platform
+```
+
+```
+##  setting  value                       
+##  version  R version 4.1.1 (2021-08-10)
+##  os       Windows 10 x64              
+##  system   x86_64, mingw32             
+##  ui       RTerm                       
+##  language (EN)                        
+##  collate  Portuguese_Brazil.1252      
+##  ctype    Portuguese_Brazil.1252      
+##  tz       America/Bahia               
+##  date     2021-10-06
+```
+
+---
+class: middle, center, inverse
+
+#Pacotes necessários
+
+---
+class: middle
+
+.center[
+# Pacotes necessários
+]
+
+
+- Pacotes para conexão com Sparklyr e manipulação dos dados 
+
+  - Sparklyr
+  
+  - dplyr
+  
+
+```r
+#install.packages("sparklyr")
+require(sparklyr)
+packageVersion("sparklyr")
+```
+
+```
+## [1] '1.7.1'
+```
+
+```r
+#install.packages("dplyr")
+require(dplyr)
+packageVersion("dplyr")
+```
+
+```
+## [1] '1.0.7'
+```
+
+
+---
+class: middle
+
+.center[
+# Pacotes necessários
+]
+
+- Pacotes para visualização de dados 
+
+  - ggplot2
+  
+  - dbplot
+  
+
+```r
+#install.packages("ggplot2")
+require(ggplot2)
+packageVersion("ggplot2")
+```
+
+```
+## [1] '3.3.5'
+```
+
+```r
+#install.packages("dbplot")
+require(dbplot)
+packageVersion("dbplot")
+```
+
+```
+## [1] '0.3.3'
+```
+
+---
+class: middle, center, inverse
+
+# Base de dados
+
+---
+class: middle
+
+.center[
+# Iris
+]
+
+-  O conjunto de dados Iris contém quatro características (comprimento e largura das sépalas e pétalas) de 50 amostras de três espécies de Iris (Iris setosa, Iris virginica e Iris versicolor)
+
+- Essas medidas foram usadas para criar um modelo discriminante linear para classificar as espécies.
+
+---
+class: middle
+
+.center[
+# Iris
+]
+
+![Descrição da base](iris.png)
+
+
+---
+class: middle
+
+.center[
+# Iris
+]
+
+- As variáveis são 
+  
+  1. Sepal.Length: Comprimento da sépala em cm
+  
+  2. Sepal.Width: Largura da sépala em cm
+  
+  3. Petal.Length: Comprimento da pétala em cm
+  
+  4. Petal.Width: Largura da pétala em cm
+  
+  5. Species: classe
+  
+       - Iris Setosa
+    
+       - Iris Versicolour
+    
+       - Iris Virginica
+
+---
+class: middle, center, inverse
+
+# Conceitos básicos
+
+---
+class: middle
+
+.center[
+# O que são grandes bases de dados?
+]
+
+- Big data são conjuntos de dados tão grandes e complexos que softwares tradicionais de processamento de dados são inadequados para manuseá-los ou analisá-los, (Zgurovsky e Zaychenko, 2020).
+
+- As principais características:
+
+    - Grande volume
+    
+    - Alta velocidade
+    
+    - Grande variedade
+    
+- [Fifty-Six Big Data V’s Characteristics and Proposed Strategies to Overcome Security and Privacy Challenges (BD2)](https://www.scirp.org/journal/paperinformation.aspx?paperid=103823)    
+
+
+---
+class: middle
+
+.center[
+# Analógico vs Digital
+]
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="analogico_digital.png" alt="Capacidade mundial de armazenar informações" width="100%" /&gt;
+&lt;p class="caption"&gt;Capacidade mundial de armazenar informações&lt;/p&gt;
+&lt;/div&gt;
+
+---
+class: middle
+
+.center[
+# História
+]
+
+- Em 2003 o Google apresentou uma abordagem que ficou conhecida com **Google File System**;
+
+- Um ano depois lançou uma outra abordagem chamada **MapReduce** com duas operações, mapear e reduzir;
+
+- As duas operações são sufientes para processar todos os dados disponíveis na web.
+
+- Com o tempo para trabalhar com big data, foram implementadas ferramentas específicas como Hadoop, HBase e Mongo DB;
+
+---
+class: middle
+
+.center[
+# Hadoop
+]
+
+- Depois que esses artigos foram lançados pelo Google, uma equipe do **Yahoo** trabalhou na implementação do **Google File System** e do **MapReduce** como um único projeto de código aberto;
+
+- Este projeto foi lançado em 2006 como **Hadoop**, com o Google File System implementado ficou conhecido como **Hadoop Distributed File System (HDFS)**;
+
+- O projeto Hadoop tornou a computação baseada em arquivo distribuída acessível a uma ampla gama de usuários e organizações, tornando o MapReduce útil além do processamento de dados da web;
+
+- Em 2008 por meio do projeto **Hive** trouxe o suporte a **Structured Query Language (SQL)** para o **Hadoop**
+
+---
+class: middle
+
+.center[
+# Spark
+]
+
+- Foi criado em 2009 por causa das limitações das abordagens **MapReduce** e **HDFS**;
+
+- O **Spark** usa o Hadoop de duas maneiras - uma é o **armazenamento** e a segunda é o **processamento**;
+
+- Em 2013 foi doado para a **Apache Software Foundation**;
+
+- Recursos do Apache Spark:
+
+  - Velocidade: 100x mais rápido na memória e 10x mais rápido quando executado no disco em relação ao Hadoop;
+  
+  - Suporta várias linguagens: Suporta API integradas em Java, Scala, Python e R;
+  
+  - Análise avançada: Consultas SQL, aprendizado de máquina, gráficos e dados de streaming. 
+
+---
+class: middle
+
+.center[
+# Informação por minuto
+]
+
+&lt;img src="internet_por_minuto.jpg" width="70%" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: middle
+
+.center[
+# O que são grandes bases de dados?
+]
+
+&lt;img src="tamanho_dos_dados.jpg" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+.center[
+# Pacote Sparklyr
+]
+
+- O `sparklyr` é uma interface R para o Apache Spark, fornece um back-end compatível com `dplyr`;
+
+- Alguns destaques:
+  
+  - Filtra e agrega conjuntos de dados do Spark e, em seguida, importa para o R para análise e visualização;
+
+  - Usa a biblioteca de aprendizado de máquina distribuída do Spark no R [MLlib](https://spark.rstudio.com/mlib/);
+  
+  - Cria extensões que chama a API Spark completa e fornece interfaces para pacotes Spark.
+
+
+---
+class: middle
+
+.center[
+# back-end compatível com dplyr?
+]
+
+- Quando conectado a um Spark DataFrame, dplyr converte os comandos em instruções SQL do Spark.
+
+
+|dplyr     |SQL               |
+|:---------|:-----------------|
+|select    |SELECT            |
+|filter    |WHERE             |
+|arrange   |ORDER             |
+|summarise |sum, min, sd, etc |
+|mutate    |+, *, log, etc.   |
+
+- Livro do Curso R sobre o [dplyr](https://livro.curso-r.com/7-2-dplyr.html)
+
+---
+class: middle, center, inverse
+
+# Ambiente spark no RStudio
+
+---
+class: middle
+
+.center[
+# Primeiros passos
+]
+
+- Instalar o spark no computador
+
+  - Verificar se já tem 
+  
+
+```r
+spark_installed_versions()
+```
+
+```
+##   spark hadoop                                                              dir
+## 1 2.4.3    2.7 C:\\Users\\nanna\\AppData\\Local/spark/spark-2.4.3-bin-hadoop2.7
+## 2 3.1.1    3.2 C:\\Users\\nanna\\AppData\\Local/spark/spark-3.1.1-bin-hadoop3.2
+```
+  
+
+---
+class: middle
+
+.center[
+# Primeiros passos
+]
+
+- Instalar o spark no computador
+
+  - Verificar a versão disponível
+  
+
+```r
+spark_available_versions()
+```
+
+```
+##   spark
+## 1   1.6
+## 2   2.0
+## 3   2.1
+## 4   2.2
+## 5   2.3
+## 6   2.4
+## 7   3.0
+## 8   3.1
+```
+  
+---
+class: middle
+
+.center[
+# Primeiros passos
+]
+
+- Instalar o spark no computador
+
+  - Pegar a versão mais atual
+
+
+```r
+spark_install("3.1")
+```
+
+---
+class: middle, center, inverse
+
+![duvida](https://media.giphy.com/media/CiYImHHBivpAs/giphy.gif)
+
+---
+class: middle
+
+.center[
+# Conexão Spark
+]
+
+- Função `spark_connect`
+
+  - `master`: Local de conexão spark; 
+  
+  - `version`: Versão utilizada;
+  
+  - `config`: Configurações extras.
+  
+- Mais informações [1](https://spark.rstudio.com/guides/connections/), [2](https://spark.rstudio.com/deployment/) e [3](https://therinspark.com/tuning.html).
+
+
+---
+class: middle
+
+.center[
+# "Lendo" os dados
+]
+
+- `spark_read_csv`: lê um arquivo CSV;
+
+- `spark_read_json`: lê um arquivo JSON;
+
+- `spark_read_parquet`: lê um arquivo em parquet;
+
+---
+class: middle
+
+.center[
+# "Lendo" os dados - Dica🥇
+]
+
+- Um arquivo muito grande que contêm muitas colunas;
+
+- Sabendo as colunas necessárias para a análise;
+
+- Utiliza o comando `memory = FALSE` e depois seleciona as colunas;
+
+- E armazena na memória utilizando a função `compute()`. 
+
+---
+class: middle
+
+.center[
+# Escrevendo os dados
+]
+
+- `spark_write_csv`: Escreve o arquivo CSV;
+
+- `spark_write_json`: Escreve o arquivo JSON;
+
+- `spark_write_parquet`: Escreve o arquivo em parquet. 
+
+---
+class: middle
+
+.center[
+# Escrevendo os dados - Dica🥇
+]
+
+- O spark "quebra" seus dados em partições para a leitura e manipulação;
+
+- Quando escreve direto salva inúmeras partições;
+
+- Para colar as partições utiliza a função `sdf_coalesce()`.
+
+---
+class: middle
+
+.center[
+# Atividade
+]
+
+Base de dados, [Microdados do Enem 2019](https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enem)
+
+
+1. Ler o arquivo em .csv e salvar em um único arquivo parquet
+
+2. Elaborar um gráfico utilizando o pacote `ggplot2`
+
+3. Elaborar um gráfico utilizando o pacote `dbplot`
+
+4. Fazer uma tabela resumo das variáveis de notas.
+
+---
+class: middle
+
+.center[
+# Referências e `help`
+]
+
+- [spark.rstudio](https://spark.rstudio.com/)
+
+- [Mastering Spark with R](https://therinspark.com/index.html)
+
+- [Apache Spark](http://spark.apache.org/)
+
+- [sparklyr: R Interface to Apache Spark](https://cran.r-project.org/web/packages/sparklyr/index.html)
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create();
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
